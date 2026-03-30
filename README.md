@@ -23,7 +23,7 @@ pinned: false
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-VaultIQ-6366f1?style=for-the-badge)](https://janhavi-cmd.github.io/VaultIQ/)
 [![Backend API](https://img.shields.io/badge/🚀_Backend_API-HuggingFace-ff6b35?style=for-the-badge)](https://janhavichaturvedi0805-vaultiq-backend.hf.space)
-[![Made with FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
@@ -32,9 +32,22 @@ pinned: false
 
 > **"VaultIQ doesn't just show you stock data — it thinks, predicts, and explains like a seasoned Wall Street analyst."**
 
-</div>
+<br/>
 
 ---
+
+### 👩‍💻 Designed & Built by
+
+# Janhavi Chaturvedi
+
+*Aspiring Fintech Engineer · AI/ML Enthusiast · Full Stack Developer*
+
+[![GitHub](https://img.shields.io/badge/GitHub-Janhavi--cmd-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Janhavi-cmd)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Janhavi_Chaturvedi-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com)
+
+---
+
+</div>
 
 ## 🎯 What Makes VaultIQ Different?
 
@@ -147,7 +160,7 @@ Z-score based spike/crash detector that flags:
 │        ▼                                                │
 │   ┌─────────────┐      ┌──────────────────────────┐    │
 │   │  React SPA  │◄────►│   Synthetic Data Engine   │    │
-│   │  (Netlify)  │      │   (Offline-first mode)    │    │
+│   │ GitHub Pages│      │   (Offline-first mode)    │    │
 │   └──────┬──────┘      └──────────────────────────┘    │
 │          │ (when online)                                │
 │          ▼                                              │
@@ -209,7 +222,6 @@ Frontend:
 Infrastructure:
   - Hugging Face Spaces  # Backend hosting (Docker)
   - GitHub Pages         # Frontend hosting (CDN)
-  - GitHub Actions       # CI/CD pipeline
 ```
 
 ---
@@ -230,11 +242,19 @@ uvicorn main:app --reload --port 8000
 
 # Open frontend
 # Just open frontend/dist/index.html in your browser
-# Or serve it:
-npx serve frontend/dist
 ```
 
-The dashboard works **fully offline** even without the backend running — synthetic data powers all charts, predictions, and AI insights automatically.
+> The dashboard works **fully offline** even without the backend — synthetic data powers all charts and AI insights automatically.
+
+---
+
+## 🧪 Engineering Highlights
+
+- **Offline-First Architecture** — Synthetic data engine generates realistic OHLCV series, app works 100% without backend
+- **Async Concurrent Fetching** — Uses `asyncio.gather()` to fetch all 60 stocks simultaneously
+- **TTL Caching** — 5-minute in-memory cache reduces yfinance API calls by ~90%
+- **Z-Score Anomaly Detection** — Statistical outlier detection flags unusual price/volume behavior
+- **Modular Backend** — Clean separation: routing → data → ML
 
 ---
 
@@ -251,42 +271,36 @@ VaultIQ/
 ├── 📂 frontend/
 │   └── dist/
 │       └── index.html       # Complete SPA (4000+ lines)
+├── 📂 docs/                 # GitHub Pages deployment
 ├── requirements.txt         # Python dependencies
 └── README.md                # Project overview
 ```
 
 ---
 
-## 🧪 Engineering Highlights
-
-- **Offline-First Architecture** — Synthetic data engine generates realistic OHLCV series seeded by ticker symbol, so the app works 100% without internet or backend
-- **Async Concurrent Fetching** — Backend uses `asyncio.gather()` to fetch all 60 stocks simultaneously instead of sequentially
-- **TTL Caching** — 5-minute in-memory cache on all expensive endpoints reduces yfinance API calls by ~90%
-- **Seeded Synthetic Data** — Each ticker always generates the same realistic data series (AAPL ≠ TSLA ≠ NVDA) for consistency
-- **Z-Score Anomaly Detection** — Statistical outlier detection flags unusual price/volume behavior in real-time
-- **Modular Backend** — Clean separation: routing (main.py) → data (data_service.py) → ML (ml_predictor.py)
+<div align="center">
 
 ---
 
-## 👩‍💻 Built By
+## 👩‍💻 About the Developer
 
-<div align="center">
+<img src="https://avatars.githubusercontent.com/Janhavi-cmd" width="100" style="border-radius:50%"/>
 
-**Janhavi Chaturvedi**
-*Aspiring Fintech Engineer | AI/ML Enthusiast*
+### Janhavi Chaturvedi
+**Fintech · AI/ML · Full Stack Development**
 
-[![GitHub](https://img.shields.io/badge/GitHub-Janhavi--cmd-181717?style=for-the-badge&logo=github)](https://github.com/Janhavi-cmd)
+*"I built VaultIQ to prove that student projects can feel like real startup products.  
+Every line of code, every design decision, every AI feature — built from scratch."*
 
-*Built as part of a fintech internship project — designed to feel like a real startup product, not a basic assignment.*
-
-</div>
+[![GitHub](https://img.shields.io/badge/GitHub-Janhavi--cmd-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Janhavi-cmd)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com)
 
 ---
-
-<div align="center">
 
 **⭐ If you find this project impressive, please star the repo!**
 
 *VaultIQ — Because smart investing starts with smarter insights.*
+
+`Built with 💜 by Janhavi Chaturvedi`
 
 </div>
