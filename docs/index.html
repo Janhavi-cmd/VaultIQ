@@ -9,7 +9,11 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-
+/* ═══════════════════════════════════════════════
+   VAULTIQ DESIGN SYSTEM
+   Luxury Terminal Aesthetic
+   Deep Navy · Obsidian · Gold Accents
+═══════════════════════════════════════════════ */
 :root {
   --void:    #05070f;
   --deep:    #080c18;
@@ -376,11 +380,17 @@ body::after {
   display:grid; grid-template-columns:auto 1fr auto; gap:20px; align-items:center;
 }
 .ds-score {
-  width:80px; height:80px; border-radius:50%;
-  background:conic-gradient(var(--gold) 0%, var(--surface) 0%);
+  width:88px; height:88px; border-radius:50%;
+  background:conic-gradient(var(--gold) 0%, var(--raised) 0%);
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--mono); font-size:22px; font-weight:600; color:var(--gold);
   box-shadow:var(--glow-gold); position:relative; flex-shrink:0;
+}
+.ds-score-inner {
+  position:absolute; inset:10px; border-radius:50%;
+  background:var(--panel);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:18px; font-weight:700;
+  z-index:2;
 }
 .ds-mid { display:flex; flex-direction:column; gap:6px; }
 .ds-signal {
@@ -553,13 +563,43 @@ body::after {
 .fade-in { animation:fadeIn 0.4s ease both; }
 
 /* ── RESPONSIVE ── */
+@media(max-width:1200px) {
+  .sh-right { min-width:240px; }
+}
 @media(max-width:900px) {
+  #nav { padding:0 12px; }
+  .nav-logo span { display:none; }
   #page-dash.active { flex-direction:column; }
-  #sidebar { width:100%; height:auto; position:static; flex-direction:row; overflow-x:auto; }
+  #sidebar { width:100%; height:auto; position:static; flex-direction:row; overflow-x:auto; flex-shrink:0; }
+  #sidebar { display:flex; flex-direction:row; overflow-x:auto; }
+  #sidebar-list { display:flex; flex-direction:row; overflow-x:auto; }
+  .sb-item { min-width:140px; flex-shrink:0; border-left:none; border-bottom:2px solid transparent; }
+  .sb-item.active { border-bottom-color:var(--gold); }
   .stock-hero { grid-template-columns:1fr; }
-  .sh-right { grid-template-columns:repeat(4,1fr); }
+  .sh-right { grid-template-columns:repeat(2,1fr); min-width:unset; }
+  .sh-price { font-size:32px; }
   .grid-2,.grid-3 { grid-template-columns:1fr; }
   .insight-grid { grid-template-columns:1fr 1fr; }
+  .decision-bar { grid-template-columns:auto 1fr; }
+  .ds-right { display:none; }
+  #companies-grid { padding:0 16px 60px; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+  .hero { padding:40px 16px 30px; }
+  .hero-title { font-size:38px; }
+  .sector-filters { padding:0 16px; }
+  #dash-main { padding:12px; }
+  .panel-head { flex-direction:column; gap:8px; align-items:flex-start; }
+  .tabs { flex-wrap:wrap; }
+}
+@media(max-width:480px) {
+  .hero-title { font-size:28px; }
+  .sh-price { font-size:26px; }
+  .sh-right { grid-template-columns:repeat(2,1fr); }
+  .insight-grid { grid-template-columns:1fr; }
+  .decision-bar { grid-template-columns:auto 1fr; gap:12px; }
+  .pct-display { font-size:52px; }
+  #companies-grid { grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); }
+  .chat-area { height:260px; }
+  .nav-logo { font-size:16px; }
 }
 </style>
 </head>
@@ -579,7 +619,6 @@ body::after {
     <div class="nav-link" onclick="showPage('dash')">Dashboard</div>
     <div class="nav-link" id="dash-stock-link" style="display:none;color:var(--gold)"></div>
   </div>
-  <button class="nav-cta" onclick="showPage('home')">↗ LAUNCH</button>
 </nav>
 
 <!-- ═══════════ HOME PAGE ═══════════ -->
@@ -611,6 +650,7 @@ body::after {
     <button class="sec-btn" data-sector="industrial" onclick="setSector(this,'Industrial')">Industrial</button>
     <button class="sec-btn" data-sector="media" onclick="setSector(this,'Media')">Media</button>
     <button class="sec-btn" data-sector="crypto" onclick="setSector(this,'Crypto')">Crypto</button>
+    <button class="sec-btn" data-sector="india" onclick="setSector(this,'India')">🇮🇳 India</button>
   </div>
 
   <div id="companies-grid"></div>
@@ -657,7 +697,7 @@ body::after {
 
     <!-- DECISION SCORE -->
     <div class="decision-bar fade-in" id="decision-bar" style="display:none">
-      <div class="ds-score" id="ds-score-circle">—</div>
+      <div class="ds-score" id="ds-score-circle"><div class="ds-score-inner">—</div></div>
       <div class="ds-mid">
         <div class="ds-signal" id="ds-signal">—</div>
         <div class="ds-label" id="ds-label">—</div>
@@ -829,11 +869,9 @@ let chartTab = 'price';
 let loadingInterval = null;
 
 
-// ══════════════════════════════════════════════════════════════════
-//  SYNTHETIC DATA ENGINE — generates realistic OHLCV + indicators
-//  from static company data so the dashboard works 100% offline
-// ══════════════════════════════════════════════════════════════════
-
+// ══════════════════════════════════════════════════════
+//  SYNTHETIC DATA ENGINE — works 100% offline
+// ══════════════════════════════════════════════════════
 function seededRand(seed) {
   let s = seed;
   return function() {
@@ -843,229 +881,179 @@ function seededRand(seed) {
 }
 
 function generateSyntheticData(symbol, days) {
-  const company = STATIC_COMPANIES.find(c => c.symbol === symbol) || {};
+  const company   = STATIC_COMPANIES.find(c => c.symbol === symbol) || {};
   const basePrice = company.price || 100;
   const signal    = company.signal || 'HOLD';
+  const currency  = company.currency || '$';
   const seed      = symbol.split('').reduce((a,c) => a + c.charCodeAt(0), 0) * 9973;
   const rng       = seededRand(seed);
+  const driftBias = signal==='BUY'?0.0006:signal==='RISKY'?-0.0003:0.0001;
+  const volBase   = signal==='RISKY'?0.022:signal==='BUY'?0.014:0.017;
 
-  // Drift bias by signal
-  const driftBias = signal === 'BUY' ? 0.0006 : signal === 'RISKY' ? -0.0003 : 0.0001;
-  const volBase   = signal === 'RISKY' ? 0.022 : signal === 'BUY' ? 0.014 : 0.017;
-
-  // Generate business days going back `days` from today
   const today = new Date();
   const dates = [];
   let d = new Date(today);
-  while (dates.length < days + 60) {
+  while(dates.length < days + 60) {
     d = new Date(d - 86400000);
-    if (d.getDay() !== 0 && d.getDay() !== 6) dates.unshift(d.toISOString().slice(0,10));
+    if(d.getDay()!==0 && d.getDay()!==6) dates.unshift(d.toISOString().slice(0,10));
   }
-  const tradingDates = dates.slice(-days - 50);
+  const tradingDates = dates.slice(-days-50);
 
-  // Build price series
-  const closes = [basePrice * (0.82 + rng() * 0.1)];
-  for (let i = 1; i < tradingDates.length; i++) {
-    const drift = driftBias + (rng() - 0.5) * volBase * 2.5;
-    closes.push(Math.max(1, closes[closes.length-1] * (1 + drift)));
-  }
+  const closes = [basePrice*(0.82+rng()*0.1)];
+  for(let i=1;i<tradingDates.length;i++)
+    closes.push(Math.max(1,closes[closes.length-1]*(1+driftBias+(rng()-0.5)*volBase*2.5)));
 
-  // Normalise last price to match static price
-  const lastGenerated = closes[closes.length-1];
-  const scale = basePrice / lastGenerated;
-  for (let i = 0; i < closes.length; i++) closes[i] = Math.round(closes[i] * scale * 100)/100;
+  const scale = basePrice / closes[closes.length-1];
+  for(let i=0;i<closes.length;i++) closes[i]=Math.round(closes[i]*scale*100)/100;
 
-  const records = [];
-  for (let i = 0; i < tradingDates.length; i++) {
-    const c = closes[i];
-    const spread = c * (0.005 + rng() * 0.012);
-    const open   = Math.round((c + (rng()-0.5)*spread)*100)/100;
-    const high   = Math.round((Math.max(open,c) + rng()*spread)*100)/100;
-    const low    = Math.round((Math.min(open,c) - rng()*spread)*100)/100;
-    const vol    = Math.round((5e6 + rng() * 75e6));
-    records.push({ date: tradingDates[i], open, high, low, close: c, volume: vol });
+  const records=[];
+  for(let i=0;i<tradingDates.length;i++){
+    const c=closes[i], spread=c*(0.005+rng()*0.012);
+    const open=Math.round((c+(rng()-0.5)*spread)*100)/100;
+    records.push({date:tradingDates[i],open,
+      high:Math.round((Math.max(open,c)+rng()*spread)*100)/100,
+      low:Math.round((Math.min(open,c)-rng()*spread)*100)/100,
+      close:c,volume:Math.round(5e6+rng()*75e6)});
   }
 
-  // ── Indicators ─────────────────────────────────────────────────
-  const ma = (arr, n) => arr.map((_,i) => i<n-1 ? null : arr.slice(i-n+1,i+1).reduce((s,v)=>s+v,0)/n);
-  const cs = records.map(r => r.close);
+  const ma=(arr,n)=>arr.map((_,i)=>i<n-1?null:arr.slice(i-n+1,i+1).reduce((s,v)=>s+v,0)/n);
+  const cs=records.map(r=>r.close);
+  const ma7=ma(cs,7),ma20=ma(cs,20),ma50=ma(cs,50);
 
-  const ma7  = ma(cs, 7);
-  const ma20 = ma(cs, 20);
-  const ma50 = ma(cs, 50);
-
-  // RSI-14
-  const rsi14 = cs.map((_, i) => {
-    if (i < 14) return null;
-    const chg = cs.slice(i-13, i+1).map((v,j,a) => j===0?0:v-a[j-1]);
-    const gains = chg.filter(v=>v>0).reduce((s,v)=>s+v,0)/14;
-    const loss  = Math.abs(chg.filter(v=>v<0).reduce((s,v)=>s+v,0))/14;
-    return loss===0 ? 100 : Math.round((100 - 100/(1+gains/loss))*10)/10;
+  const rsi14=cs.map((_,i)=>{
+    if(i<14)return null;
+    const chg=cs.slice(i-13,i+1).map((v,j,a)=>j===0?0:v-a[j-1]);
+    const g=chg.filter(v=>v>0).reduce((s,v)=>s+v,0)/14;
+    const l=Math.abs(chg.filter(v=>v<0).reduce((s,v)=>s+v,0))/14;
+    return l===0?100:Math.round((100-100/(1+g/l))*10)/10;
   });
 
-  // MACD
-  const ema = (arr, span) => {
-    const k = 2/(span+1), out = [arr[0]];
-    for (let i=1;i<arr.length;i++) out.push(arr[i]*k + out[i-1]*(1-k));
-    return out;
-  };
-  const ema12 = ema(cs,12), ema26 = ema(cs,26);
-  const macdLine = cs.map((_,i) => Math.round((ema12[i]-ema26[i])*10000)/10000);
-  const macdSig  = ema(macdLine,9).map(v => Math.round(v*10000)/10000);
-  const macdHist = macdLine.map((v,i) => Math.round((v-macdSig[i])*10000)/10000);
+  const ema=(arr,span)=>{const k=2/(span+1),out=[arr[0]];for(let i=1;i<arr.length;i++)out.push(arr[i]*k+out[i-1]*(1-k));return out;};
+  const e12=ema(cs,12),e26=ema(cs,26);
+  const macdLine=cs.map((_,i)=>Math.round((e12[i]-e26[i])*10000)/10000);
+  const macdSig=ema(macdLine,9).map(v=>Math.round(v*10000)/10000);
+  const macdHist=macdLine.map((v,i)=>Math.round((v-macdSig[i])*10000)/10000);
 
-  // Bollinger Bands (20, ±2σ)
-  const bb = cs.map((_,i) => {
-    if (i<19) return {up:null,lo:null};
-    const sl = cs.slice(i-19,i+1);
-    const mean = sl.reduce((s,v)=>s+v,0)/20;
-    const std  = Math.sqrt(sl.map(v=>(v-mean)**2).reduce((s,v)=>s+v,0)/20);
-    return { up: Math.round((mean+2*std)*100)/100, lo: Math.round((mean-2*std)*100)/100 };
+  const bb=cs.map((_,i)=>{
+    if(i<19)return{up:null,lo:null};
+    const sl=cs.slice(i-19,i+1),mean=sl.reduce((s,v)=>s+v,0)/20;
+    const std=Math.sqrt(sl.map(v=>(v-mean)**2).reduce((s,v)=>s+v,0)/20);
+    return{up:Math.round((mean+2*std)*100)/100,lo:Math.round((mean-2*std)*100)/100};
   });
 
-  // Volatility (20-day annualised)
-  const rets = cs.map((v,i) => i===0?0:(v-cs[i-1])/cs[i-1]);
-  const volatility = rets.map((_,i) => {
-    if (i<20) return null;
-    const sl = rets.slice(i-19,i+1);
-    const mean = sl.reduce((s,v)=>s+v,0)/20;
-    const std  = Math.sqrt(sl.map(v=>(v-mean)**2).reduce((s,v)=>s+v,0)/20);
-    return Math.round(std * Math.sqrt(252) * 10000)/10000;
+  const rets=cs.map((v,i)=>i===0?0:(v-cs[i-1])/cs[i-1]);
+  const volatility=rets.map((_,i)=>{
+    if(i<20)return null;
+    const sl=rets.slice(i-19,i+1),mean=sl.reduce((s,v)=>s+v,0)/20;
+    return Math.round(Math.sqrt(sl.map(v=>(v-mean)**2).reduce((s,v)=>s+v,0)/20)*Math.sqrt(252)*10000)/10000;
   });
 
-  // 52-week high/low
-  const w52high = cs.map((_,i) => Math.max(...cs.slice(Math.max(0,i-251),i+1)));
-  const w52low  = cs.map((_,i) => Math.min(...cs.slice(Math.max(0,i-251),i+1)));
+  const w52h=cs.map((_,i)=>Math.max(...cs.slice(Math.max(0,i-251),i+1)));
+  const w52l=cs.map((_,i)=>Math.min(...cs.slice(Math.max(0,i-251),i+1)));
 
-  // Attach indicators to records
-  records.forEach((r,i) => {
-    r.return    = i===0 ? null : Math.round((cs[i]-cs[i-1])/cs[i-1]*10000)/10000;
-    r.ma7       = ma7[i];
-    r.ma20      = ma20[i];
-    r.ma50      = ma50[i];
-    r.rsi       = rsi14[i];
-    r.macd      = macdLine[i];
-    r.macd_sig  = macdSig[i];
-    r.macd_hist = macdHist[i];
-    r.bb_up     = bb[i].up;
-    r.bb_lo     = bb[i].lo;
-    r.vol       = volatility[i];
+  records.forEach((r,i)=>{
+    r.return=i===0?null:Math.round((cs[i]-cs[i-1])/cs[i-1]*10000)/10000;
+    r.ma7=ma7[i]; r.ma20=ma20[i]; r.ma50=ma50[i];
+    r.rsi=rsi14[i]; r.macd=macdLine[i]; r.macd_sig=macdSig[i]; r.macd_hist=macdHist[i];
+    r.bb_up=bb[i].up; r.bb_lo=bb[i].lo; r.vol=volatility[i];
   });
 
-  const tail = records.slice(-days);
+  const tail=records.slice(-days);
+  const last=tail[tail.length-1], prev=tail[tail.length-2]||last;
+  const prev5=tail[Math.max(0,tail.length-5)];
+  const price=last.close;
+  const change_pct=Math.round((price-prev.close)/prev.close*10000)/100;
+  const trend5d=Math.round((price-prev5.close)/prev5.close*10000)/100;
+  const rsi=last.rsi||company.rsi||50;
+  const vol=last.vol?Math.round(last.vol*1000)/10:18;
+  const above_ma20=last.ma20?price>last.ma20:signal==='BUY';
+  const above_ma50=last.ma50?price>last.ma50:signal==='BUY';
+  const ds=company.decision_score||55;
 
-  // ── Compute metrics from tail ───────────────────────────────────
-  const last  = tail[tail.length-1];
-  const prev  = tail[tail.length-2] || last;
-  const prev5 = tail[Math.max(0,tail.length-5)];
-  const price      = last.close;
-  const change_pct = Math.round((price-prev.close)/prev.close*10000)/100;
-  const trend5d    = Math.round((price-prev5.close)/prev5.close*10000)/100;
-  const rsi        = last.rsi || company.rsi || 50;
-  const vol        = last.vol ? Math.round(last.vol*1000)/10 : 18;
-  const above_ma20 = last.ma20 ? price > last.ma20 : signal==='BUY';
-  const above_ma50 = last.ma50 ? price > last.ma50 : signal==='BUY';
-  const ds = company.decision_score || 55;
+  const trend_label=trend5d>3&&above_ma20?'Strong Uptrend':trend5d>0.5?'Uptrend':
+    trend5d<-3&&!above_ma20?'Strong Downtrend':trend5d<-0.5?'Downtrend':'Sideways';
 
-  const trend_label =
-    trend5d > 3 && above_ma20 ? 'Strong Uptrend' :
-    trend5d > 0.5             ? 'Uptrend'         :
-    trend5d < -3 && !above_ma20 ? 'Strong Downtrend' :
-    trend5d < -0.5            ? 'Downtrend'        : 'Sideways';
+  const wh=w52h[records.length-1], wl=w52l[records.length-1];
+  const bbPos=(last.bb_up&&last.bb_lo)?Math.round((price-last.bb_lo)/(last.bb_up-last.bb_lo)*1000)/1000:0.5;
+  const momentum=Math.round((price/cs[Math.max(0,cs.length-11)]-1)*10000)/100;
 
-  const w52h = w52high[records.length-1];
-  const w52l = w52low[records.length-1];
-  const bbPos = (last.bb_up && last.bb_lo)
-    ? Math.round((price - last.bb_lo)/(last.bb_up - last.bb_lo)*1000)/1000
-    : 0.5;
-  const momentum = Math.round((price/cs[Math.max(0,cs.length-11)]-1)*10000)/100;
-
-  const metrics = {
-    symbol: symbol, name: company.name||symbol, sector: company.sector||'',
-    mcap: company.mcap||'', price, change_pct, trend5d_pct: trend5d,
-    decision_score: ds, signal: company.signal||'HOLD',
-    signal_color: company.signal==='BUY'?'#22c55e':company.signal==='RISKY'?'#ef4444':'#f59e0b',
-    trend_label, rsi: Math.round(rsi*10)/10,
-    volatility: vol, macd_hist: last.macd_hist||0, momentum,
-    above_ma20, above_ma50, bb_position: bbPos,
-    w52_high: Math.round(w52h*100)/100, w52_low: Math.round(w52l*100)/100,
-    ma20: last.ma20 ? Math.round(last.ma20*100)/100 : null,
-    ma50: last.ma50 ? Math.round(last.ma50*100)/100 : null,
-    volume: last.volume,
+  const metrics={
+    symbol,name:company.name||symbol,sector:company.sector||'',
+    currency,mcap:company.mcap||'',price,change_pct,trend5d_pct:trend5d,
+    decision_score:ds,signal:company.signal||'HOLD',
+    signal_color:company.signal==='BUY'?'#22c55e':company.signal==='RISKY'?'#ef4444':'#f59e0b',
+    trend_label,rsi:Math.round(rsi*10)/10,volatility:vol,
+    macd_hist:last.macd_hist||0,momentum,above_ma20,above_ma50,bb_position:bbPos,
+    w52_high:Math.round(wh*100)/100,w52_low:Math.round(wl*100)/100,
+    ma20:last.ma20?Math.round(last.ma20*100)/100:null,
+    ma50:last.ma50?Math.round(last.ma50*100)/100:null,
+    volume:last.volume,
   };
 
-  // ── ML-style 7-day forecast ─────────────────────────────────────
-  const lastClose  = price;
-  const trendFactor = signal==='BUY'?0.003:signal==='RISKY'?-0.002:0.0005;
-  const futurePrices = [], futureDates = [], futureUp = [], futureDn = [];
-  let fp = lastClose;
-  let fd = new Date(today);
-  for (let i=0;i<7;i++) {
-    fd = new Date(fd.getTime() + 86400000);
-    while(fd.getDay()===0||fd.getDay()===6) fd = new Date(fd.getTime()+86400000);
-    fp = Math.round(fp*(1+trendFactor+(seededRand(seed+i)()-0.5)*0.008)*100)/100;
+  const trendFactor=signal==='BUY'?0.003:signal==='RISKY'?-0.002:0.0005;
+  const futurePrices=[],futureDates=[],futureUp=[],futureDn=[];
+  let fp=price;
+  let fd=new Date(today);
+  for(let i=0;i<7;i++){
+    fd=new Date(fd.getTime()+86400000);
+    while(fd.getDay()===0||fd.getDay()===6) fd=new Date(fd.getTime()+86400000);
+    fp=Math.round(fp*(1+trendFactor+(seededRand(seed+i)()-0.5)*0.008)*100)/100;
     futurePrices.push(fp);
     futureDates.push(fd.toISOString().slice(0,10));
     futureUp.push(Math.round(fp*1.025*100)/100);
     futureDn.push(Math.round(fp*0.975*100)/100);
   }
-  const expChg = Math.round((futurePrices[6]-lastClose)/lastClose*10000)/100;
+  const expChg=Math.round((futurePrices[6]-price)/price*10000)/100;
 
-  const prediction = {
-    future_dates: futureDates, predicted_prices: futurePrices,
-    confidence_up: futureUp, confidence_down: futureDn,
-    direction: futurePrices[6]>lastClose?'up':'down',
-    expected_change_pct: expChg,
-    historical_dates: tail.slice(-30).map(r=>r.date),
-    historical_prices: tail.slice(-30).map(r=>r.close),
+  const prediction={
+    future_dates:futureDates,predicted_prices:futurePrices,
+    confidence_up:futureUp,confidence_down:futureDn,
+    direction:futurePrices[6]>price?'up':'down',
+    expected_change_pct:expChg,
+    historical_dates:tail.slice(-30).map(r=>r.date),
+    historical_prices:tail.slice(-30).map(r=>r.close),
   };
 
-  // ── Anomaly detection ───────────────────────────────────────────
-  const retArr = tail.map(r=>r.return||0).filter(v=>v!==null);
-  const mu  = retArr.reduce((s,v)=>s+v,0)/retArr.length;
-  const std2= Math.sqrt(retArr.map(v=>(v-mu)**2).reduce((s,v)=>s+v,0)/retArr.length);
-  const anomalies = tail.filter(r=>{
-    if(!r.return) return false;
-    return Math.abs((r.return-mu)/(std2+1e-9)) > 2.5;
+  const retArr=tail.map(r=>r.return||0).filter(v=>v!==null);
+  const mu=retArr.reduce((s,v)=>s+v,0)/retArr.length;
+  const std2=Math.sqrt(retArr.map(v=>(v-mu)**2).reduce((s,v)=>s+v,0)/retArr.length);
+  const anomalies=tail.filter(r=>{
+    if(!r.return)return false;
+    return Math.abs((r.return-mu)/(std2+1e-9))>2.5;
   }).slice(-8).map(r=>{
-    const z = (r.return-mu)/(std2+1e-9);
-    return { date:r.date, return_pct:Math.round(r.return*10000)/100,
-      z_score:Math.round(z*100)/100, type:z>0?'spike':'crash',
-      severity: Math.abs(z)>3.5?'extreme':'high' };
+    const z=(r.return-mu)/(std2+1e-9);
+    return{date:r.date,return_pct:Math.round(r.return*10000)/100,
+      z_score:Math.round(z*100)/100,type:z>0?'spike':'crash',
+      severity:Math.abs(z)>3.5?'extreme':'high'};
   });
 
-  // ── Smart alerts ────────────────────────────────────────────────
-  const alerts = [];
-  if (rsi > 75) alerts.push({type:'overbought',level:'warning',msg:`RSI at ${rsi} — stock may be overbought. Consider taking profits.`});
-  if (rsi < 30) alerts.push({type:'oversold',level:'info',msg:`RSI at ${rsi} — stock appears oversold. Potential buying opportunity.`});
-  if (vol > 40) alerts.push({type:'volatility',level:'danger',msg:`Annualized volatility at ${vol}% — elevated risk environment.`});
-  if (w52h && price >= w52h*0.98) alerts.push({type:'52w_high',level:'info',msg:`Trading near 52-week high of $${w52h.toFixed(2)} — strong momentum signal.`});
-  if (w52l && price <= w52l*1.03) alerts.push({type:'52w_low',level:'danger',msg:`Trading near 52-week low of $${w52l.toFixed(2)} — significant downside pressure.`});
-  if (alerts.length===0) alerts.push({type:'neutral',level:'info',msg:`No active alerts. ${symbol} is trading within normal parameters.`});
+  const alerts=[];
+  if(rsi>75) alerts.push({type:'overbought',level:'warning',msg:`RSI at ${rsi} — stock may be overbought. Consider taking profits.`});
+  if(rsi<30) alerts.push({type:'oversold',level:'info',msg:`RSI at ${rsi} — stock appears oversold. Potential buying opportunity.`});
+  if(vol>40) alerts.push({type:'volatility',level:'danger',msg:`Annualized volatility at ${vol}% — elevated risk environment.`});
+  if(wh && price>=wh*0.98) alerts.push({type:'52w_high',level:'info',msg:`Trading near 52-week high of ${currency+wh.toFixed(2)} — strong momentum signal.`});
+  if(wl && price<=wl*1.03) alerts.push({type:'52w_low',level:'danger',msg:`Trading near 52-week low of ${currency+wl.toFixed(2)} — significant downside pressure.`});
+  if(alerts.length===0) alerts.push({type:'neutral',level:'info',msg:`No active alerts. ${symbol} is trading within normal parameters.`});
 
-  // ── AI context string ───────────────────────────────────────────
-  const modeMap = {
-    conservative: 'very risk-averse, prefers stable blue-chip stocks, capital preservation',
-    moderate:     'balanced risk/reward, comfortable with moderate volatility, 3–5 year horizon',
-    aggressive:   'high risk tolerance, seeks maximum returns, comfortable with speculative positions',
+  const modeMap={
+    conservative:'very risk-averse, prefers stable blue-chip stocks, capital preservation',
+    moderate:'balanced risk/reward, comfortable with moderate volatility, 3-5 year horizon',
+    aggressive:'high risk tolerance, seeks maximum returns, comfortable with speculative positions',
   };
-  const context = `You are Vaultara, an elite AI financial analyst for VaultIQ. You speak with authority and precision like a top Wall Street analyst. Never say you are an AI; you are Vaultara. Keep responses concise and data-driven. Use **bold** for key terms.
+  const cur=currency;
+  const context=`You are Vaultara, an elite AI financial analyst for VaultIQ. Speak with authority like a top Wall Street analyst. Never say you are an AI. Keep responses concise and data-driven. Use **bold** for key terms.
 
-━━━ STOCK: ${symbol} ━━━
-Company: ${metrics.name} | Sector: ${metrics.sector} | Market Cap: ${metrics.mcap}
-Current Price: $${price} | 1-day: ${change_pct}% | 5-day: ${trend5d}%
+STOCK: ${symbol} | ${metrics.name} | ${metrics.sector} | ${metrics.mcap}
+Price: ${cur+price} | 1-day: ${change_pct}% | 5-day: ${trend5d}%
 Decision Score: ${ds}/100 | Signal: ${metrics.signal}
-RSI-14: ${metrics.rsi} | Annualized Volatility: ${vol}%
+RSI-14: ${metrics.rsi} | Volatility: ${vol}% annualized
 Above MA-20: ${above_ma20} | Above MA-50: ${above_ma50}
 Trend: ${trend_label} | Momentum: ${momentum}%
-Bollinger Band Position: ${bbPos} (0=lower, 1=upper)
-52W High: $${metrics.w52_high} | 52W Low: $${metrics.w52_low}
+52W High: ${cur+wh.toFixed(2)} | 52W Low: ${cur+wl.toFixed(2)}
 7-Day Forecast: ${prediction.direction} (${expChg}% expected)
-Anomalies: ${anomalies.length} unusual events | Alerts: ${alerts.length} active
-━━━ INVESTOR PROFILE: ${(currentMode||'moderate').toUpperCase()} ━━━
-${modeMap[currentMode||'moderate']}`;
+INVESTOR MODE: ${(currentMode||'moderate').toUpperCase()} — ${modeMap[currentMode||'moderate']}`;
 
-  return { data: tail, metrics, prediction, anomalies, alerts, context };
+  return{data:tail,metrics,prediction,anomalies,alerts,context};
 }
 
 // ── UTILS ──────────────────────────────────────
@@ -1084,27 +1072,19 @@ function showPage(name) {
 }
 
 // ── TICKER TAPE ────────────────────────────────
-async function loadTicker() {
-  try {
-    let data = STATIC_COMPANIES;
-    const sample = data.slice(0,18);
-    const items  = sample.map(s =>
-      `<span class="tick"><span class="tick-sym">${s.symbol}</span><span class="tick-sep">|</span><span class="tick-price">$${fmt(s.price)}</span><span class="${s.change_pct>=0?'tick-up':'tick-dn'}">${fmtPct(s.change_pct)}</span></span>`
-    ).join('');
-    $('ticker-inner').innerHTML = items + items;
-  } catch(e) {
-    $('ticker-inner').innerHTML = Array(10).fill('<span class="tick"><span class="tick-sym">VAULTIQ</span><span class="tick-sep">|</span><span class="tick-price">AI ANALYTICS</span></span>').join('');
-  }
+function loadTicker() {
+  const data = STATIC_COMPANIES;
+  const items = data.slice(0,18).map(s =>
+    `<span class="tick"><span class="tick-sym">${s.symbol}</span><span class="tick-sep">|</span><span class="tick-price">${(s.currency||'$')+fmt(s.price)}</span><span class="${s.change_pct>=0?'tick-up':'tick-dn'}">${fmtPct(s.change_pct)}</span></span>`
+  ).join('');
+  $('ticker-inner').innerHTML = items + items;
 }
 
 // ── COMPANIES ──────────────────────────────────
-async function loadCompanies() {
-  // Always show all 60 companies immediately from static data
+function loadCompanies() {
   allCompanies = STATIC_COMPANIES.map(c => ({...c}));
   renderCompanyCards(allCompanies);
-
-  // Then try to enrich with live data from API (non-blocking)
- // static only
+  buildSidebar(allCompanies);
 }
 
 function renderSkeleton() {
@@ -1129,27 +1109,23 @@ function renderCompanyCards(companies) {
   $('companies-grid').innerHTML = filtered.map(c => {
     const chg = c.change_pct;
     const sig = c.signal || '—';
-    const sigCls = sig==='BUY'?'sig-buy':sig==='HOLD'?'sig-hold':(sig==='SELL'||sig==='RISKY')?'sig-risk':'sig-hold';
-    const sigLabel = (sig==='RISKY'||sig==='SELL') ? sig : sig;
-    const scoreColor = c.decision_score>=65?'var(--green)':c.decision_score>=45?'var(--amber)':'var(--red)';
+    const sigCls = sig==='BUY'?'sig-buy':sig==='HOLD'?'sig-hold':'sig-risk';
     return `<div class="company-card" onclick="selectCompany('${c.symbol}')">
       <div class="cc-top">
         <span class="cc-sym">${c.symbol}</span>
         <span class="cc-sector">${c.sector.toUpperCase()}</span>
       </div>
       <div class="cc-name">${c.name}</div>
-      <div class="cc-price">${c.price!=null?'$'+fmt(c.price):'—'}</div>
+      <div class="cc-price">${c.price!=null?(c.currency||'$')+fmt(c.price):'—'}</div>
       <div class="cc-row">
-        <span class="cc-change" style="color:${chg!=null?col(chg):'var(--text3)'}">${chg!=null?(chg>=0?'▲':'▼')+Math.abs(chg).toFixed(2)+'%':'—'}</span>
-        <span class="cc-sig ${sigCls}">${sigLabel}</span>
+        <span class="cc-change" style="color:${chg!=null?col(chg):'var(--text3)'}">${chg!=null?(chg>0?'▲':'▼')+Math.abs(chg).toFixed(2)+'%':'—'}</span>
+        <span class="cc-sig ${sigCls}">${sig}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
-        <span class="cc-mcap">${c.mcap||''}</span>
-        ${c.decision_score!=null?`<span style="font-size:9px;font-family:var(--mono);color:var(--text3)">Score <span style="color:${scoreColor};font-weight:600">${c.decision_score}</span></span>`:''}
-      </div>
+      <div class="cc-mcap" style="margin-top:6px;">${c.mcap||''}</div>
     </div>`;
   }).join('');
 }
+
 function setSector(el, sector) {
   activeSector = sector;
   document.querySelectorAll('.sec-btn').forEach(b=>b.classList.remove('active'));
@@ -1235,39 +1211,20 @@ async function selectCompany(symbol) {
 
   startLoadingSequence(symbol);
 
-  // Always generate synthetic data immediately (works offline)
+  // Use synthetic data (works 100% offline)
   const synth = generateSyntheticData(symbol, currentDays);
-
-  // Try live API in parallel — use if it responds in time
-  let ctx = null;
-  let stockData = null;
-
-  try {
-    const [liveCtx, liveData] = await Promise.all([
-      fetch(`${API}/ai-context/${symbol}?days=${currentDays}&mode=${currentMode}`, {signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : new AbortController().signal}).then(r=>r.json()),
-      fetch(`${API}/data/${symbol}?days=${currentDays}`, {signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : new AbortController().signal}).then(r=>r.json())
-    ]);
-    ctx       = liveCtx;
-    stockData = liveData;
-    stockContext = ctx.context || synth.context;
-    stockMetrics = ctx.metrics  || synth.metrics;
-    currentData  = stockData;
-  } catch(e) {
-    // API offline — use synthetic data (fully functional)
-    ctx = {
-      context:    synth.context,
-      metrics:    synth.metrics,
-      prediction: synth.prediction,
-      anomalies:  synth.anomalies,
-      alerts:     synth.alerts,
-    };
-    stockData    = { symbol, data: synth.data };
-    stockContext = synth.context;
-    stockMetrics = synth.metrics;
-    currentData  = stockData;
-  }
-
-  chatHistory = [];
+  const ctx = {
+    context:   synth.context,
+    metrics:   synth.metrics,
+    prediction:synth.prediction,
+    anomalies: synth.anomalies,
+    alerts:    synth.alerts,
+  };
+  const stockData = { symbol, data: synth.data };
+  stockContext = synth.context;
+  stockMetrics = synth.metrics;
+  currentData  = stockData;
+  chatHistory  = [];
   renderDashboard(stockData, ctx);
   buildSidebar(allCompanies);
 }
@@ -1287,16 +1244,10 @@ function renderDashboard(stockData, ctx) {
   renderAlerts(alerts);
   updateSidebarActive();
 
-  // Auto-greet with real data
+  // Auto-greet
   setTimeout(()=>{
-    const name = met.name || activeSymbol;
-    const score = met.decision_score || 50;
-    const signal = met.signal || 'HOLD';
-    const trend = met.trend_label || 'Sideways';
-    const rsiVal = met.rsi || 50;
-    const price = met.price || 0;
-    const chg = met.change_pct || 0;
-    addAIMessage(`Welcome. I'm **Vaultara**, your personal AI analyst.\n\nI've completed a full institutional review of **${name}** (${activeSymbol}).\n\n**Decision Score: ${score}/100 — ${signal}** · Current Price: **$${fmt(price)}** (${chg>=0?'+':''}${fmt(chg,2)}%)\n\nThe stock is currently in a **${trend}** with RSI at **${rsiVal}**. ${getQuickSummary(met, pred)}\n\nWhat would you like to explore in depth?`);
+    const cur = met.currency||'$';
+    addAIMessage(`Welcome. I'm **Vaultara**, your personal AI analyst.\n\nI've completed a full institutional review of **${met.name||activeSymbol}** (${activeSymbol}).\n\n**Decision Score: ${met.decision_score}/100 — ${met.signal}** · Price: **${cur+fmt(met.price)}** (${(met.change_pct||0)>=0?'+':''} ${fmt(met.change_pct,2)}%)\n\nTrend: **${met.trend_label}** · RSI: **${met.rsi}** · ${getQuickSummary(met, pred)}\n\nWhat would you like to explore?`);
   }, 200);
 }
 
@@ -1319,16 +1270,16 @@ function renderStockHero(met, data) {
       </div>
       <div class="sh-name">${met.symbol||activeSymbol} · ${met.mcap||''}</div>
       <div class="sh-price-row">
-        <div class="sh-price">$${fmt(met.price)}</div>
+        <div class="sh-price">${met.currency||'$'}${fmt(met.price)}</div>
         <div class="sh-change" style="color:${col(met.change_pct||0)}">
           ${(met.change_pct||0)>=0?'▲':'▼'} ${Math.abs(met.change_pct||0).toFixed(2)}%
         </div>
       </div>
     </div>
     <div class="sh-right">
-      <div class="metric-box"><div class="mb-label">52W High</div><div class="mb-val">$${fmt(met.w52_high)}</div></div>
-      <div class="metric-box"><div class="mb-label">52W Low</div><div class="mb-val">$${fmt(met.w52_low)}</div></div>
-      <div class="metric-box"><div class="mb-label">MA-20</div><div class="mb-val">$${fmt(met.ma20)}</div><div class="mb-sub" style="color:${met.above_ma20?'var(--green)':'var(--red)'}">Price ${met.above_ma20?'above':'below'}</div></div>
+      <div class="metric-box"><div class="mb-label">52W High</div><div class="mb-val">${(met.currency||'$')+fmt(met.w52_high)}</div></div>
+      <div class="metric-box"><div class="mb-label">52W Low</div><div class="mb-val">${(met.currency||'$')+fmt(met.w52_low)}</div></div>
+      <div class="metric-box"><div class="mb-label">MA-20</div><div class="mb-val">${(met.currency||'$')+fmt(met.ma20)}</div><div class="mb-sub" style="color:${met.above_ma20?'var(--green)':'var(--red)'}">Price ${met.above_ma20?'above':'below'}</div></div>
       <div class="metric-box"><div class="mb-label">Volume</div><div class="mb-val">${((met.volume||0)/1e6).toFixed(1)}M</div></div>
     </div>`;
 }
@@ -1342,10 +1293,12 @@ function renderDecisionBar(met) {
   const sigMap = {BUY:'var(--green)',HOLD:'var(--amber)',RISKY:'var(--red)'};
   const sigColor = sigMap[met.signal]||'var(--gold)';
 
-  $('ds-score-circle').textContent = sc;
-  $('ds-score-circle').style.background = `conic-gradient(${sigColor} ${pct}deg, var(--surface) ${pct}deg)`;
+  $('ds-score-circle').style.background = `conic-gradient(${sigColor} ${pct}deg, var(--raised) ${pct}deg)`;
   $('ds-score-circle').style.boxShadow = `0 0 30px ${sigColor}40`;
-  $('ds-score-circle').style.color = sigColor;
+  // Update inner text
+  const _inner = $('ds-score-circle').querySelector('.ds-score-inner') || $('ds-score-circle');
+  _inner.textContent = sc;
+  _inner.style.color = sigColor;
 
   const signalDesc = {
     BUY:`Score ≥ 65 · Multiple bullish indicators aligned · Suitable for ${currentMode} investors`,
@@ -1512,13 +1465,7 @@ function setDays(d, el) {
   currentDays = d;
   document.querySelectorAll('.tabs .tab').forEach(t=>{if(t.textContent.match(/3M|6M|1Y/))t.classList.remove('active')});
   el.classList.add('active');
-  if(activeSymbol) {
-    // Re-render charts with new day range using synthetic data immediately
-    const synth = generateSyntheticData(activeSymbol, currentDays);
-    renderCharts({data: synth.data}, synth.prediction);
-    // Then try live API
-    selectCompany(activeSymbol);
-  }
+  if(activeSymbol) selectCompany(activeSymbol);
 }
 
 // ── ANOMALIES / ALERTS ─────────────────────────
@@ -1554,7 +1501,7 @@ function buildSidebar(companies) {
     <div class="sb-item${c.symbol===activeSymbol?' active':''}" id="sb-${c.symbol}" onclick="selectCompany('${c.symbol}')">
       <div class="sb-top">
         <span class="sb-sym">${c.symbol}</span>
-        <span class="sb-price">$${fmt(c.price)}</span>
+        <span class="sb-price">${(c.currency||'$')+fmt(c.price)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span class="sb-name">${c.name}</span>
@@ -1577,100 +1524,67 @@ function setMode(mode, el) {
   if(activeSymbol) refreshAnalysis();
 }
 
-async function refreshAnalysis() {
+function refreshAnalysis() {
   if(!activeSymbol) return;
   $('refresh-spinner').innerHTML = '<span class="spinner-inline"></span>';
-  try {
-    const liveCtx = await Promise.race([
-      fetch(`${API}/ai-context/${activeSymbol}?days=${currentDays}&mode=${currentMode}`).then(r=>r.json()),
-      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
-    ]);
-    stockContext = liveCtx.context || '';
-    stockMetrics = liveCtx.metrics || {};
-    renderDecisionBar(liveCtx.metrics||{});
-    renderInsightCards(liveCtx.metrics||{}, liveCtx.prediction||{});
-    renderAnomalies(liveCtx.anomalies||[]);
-    renderAlerts(liveCtx.alerts||[]);
-    chatHistory = [];
-    $('chat-area').innerHTML = '';
-    addAIMessage(`Analysis refreshed in **${currentMode} mode**. Decision Score: **${liveCtx.metrics?.decision_score}/100 — ${liveCtx.metrics?.signal}**. Ask me anything about ${activeSymbol}.`);
-  } catch(e) {
-    // Use synthetic data for refresh
-    const synth = generateSyntheticData(activeSymbol, currentDays);
-    stockContext = synth.context;
-    stockMetrics = synth.metrics;
-    renderDecisionBar(synth.metrics);
-    renderInsightCards(synth.metrics, synth.prediction);
-    renderAnomalies(synth.anomalies);
-    renderAlerts(synth.alerts);
-    chatHistory = [];
-    $('chat-area').innerHTML = '';
-    addAIMessage(`Analysis refreshed in **${currentMode} mode**. Decision Score: **${synth.metrics.decision_score}/100 — ${synth.metrics.signal}**. Ask me anything about ${activeSymbol}.`);
-  }
-  $('refresh-spinner').innerHTML = '';
+  const synth = generateSyntheticData(activeSymbol, currentDays);
+  stockContext = synth.context;
+  stockMetrics = synth.metrics;
+  renderDecisionBar(synth.metrics);
+  renderInsightCards(synth.metrics, synth.prediction);
+  renderAnomalies(synth.anomalies);
+  renderAlerts(synth.alerts);
+  chatHistory = [];
+  $('chat-area').innerHTML = '';
+  addAIMessage(`Analysis refreshed in **${currentMode} mode**. Decision Score: **${synth.metrics.decision_score}/100 — ${synth.metrics.signal}**. Ask me anything about ${activeSymbol}.`);
+  setTimeout(() => { $('refresh-spinner').innerHTML = ''; }, 300);
 }
 
 // ── SIMULATOR ──────────────────────────────────
-async function runSimulator() {
+function runSimulator() {
   if(!activeSymbol) return;
-  const amount  = parseFloat($('sim-amount').value) || 10000;
-  const daysAgo = parseInt($('sim-days').value) || 90;
-
-  // Try live API first
+  const amount  = parseFloat($('sim-amount').value)||10000;
+  const daysAgo = parseInt($('sim-days').value)||90;
   try {
-    const d = await Promise.race([
-      fetch(`${API}/simulate?symbol=${activeSymbol}&amount=${amount}&days_ago=${daysAgo}`).then(r=>r.json()),
-      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
-    ]);
-    if (d.error) throw new Error(d.error);
-    renderSimResult(d);
-    return;
-  } catch(e) {}
-
-  // Offline: simulate from synthetic data
-  const synth = generateSyntheticData(activeSymbol, Math.max(daysAgo + 10, 90));
-  const recs   = synth.data;
-  const buyIdx = Math.max(0, recs.length - daysAgo);
-  const buyRow = recs[buyIdx];
-  const sellRow= recs[recs.length - 1];
-  const buyPrice   = buyRow.close;
-  const sellPrice  = sellRow.close;
-  const shares     = amount / buyPrice;
-  const currVal    = shares * sellPrice;
-  const profit     = currVal - amount;
-  renderSimResult({
-    symbol: activeSymbol, amount_invested: Math.round(amount*100)/100,
-    buy_price: Math.round(buyPrice*100)/100, buy_date: buyRow.date,
-    current_price: Math.round(sellPrice*100)/100,
-    current_value: Math.round(currVal*100)/100,
-    profit_loss:   Math.round(profit*100)/100,
-    return_pct:    Math.round(profit/amount*10000)/100,
-    shares:        Math.round(shares*10000)/10000,
-    outcome:       profit >= 0 ? 'profit' : 'loss',
-  });
-}
-
-function renderSimResult(d) {
-  const isProfit = d.outcome === 'profit';
-  $('sim-result').style.display = 'block';
-  $('sim-result').innerHTML = `
-    <div class="sim-result">
-      <div class="sim-headline" style="color:${isProfit?'var(--green)':'var(--red)'}">
-        ${isProfit?'▲':'▼'} ${isProfit?'+':'-'}$${Math.abs(d.profit_loss).toFixed(2)}
-        <span style="font-size:14px;color:var(--text2)">(${fmtPct(d.return_pct)})</span>
-      </div>
-      <div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:12px;">
-        ${isProfit?'Your investment grew':'Your investment declined'} over ${$('sim-days').value} days
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-family:var(--mono);">
-        <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">INVESTED</div><div>$${fmt(d.amount_invested)}</div></div>
-        <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">CURRENT VALUE</div><div style="color:${isProfit?'var(--green)':'var(--red)'}">$${fmt(d.current_value)}</div></div>
-        <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">SHARES HELD</div><div>${d.shares}</div></div>
-        <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">BUY PRICE</div><div>$${fmt(d.buy_price)}</div></div>
-        <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">CURRENT PRICE</div><div>$${fmt(d.current_price)}</div></div>
-        <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">BUY DATE</div><div>${d.buy_date}</div></div>
-      </div>
-    </div>`;
+    const synth = generateSyntheticData(activeSymbol, Math.max(daysAgo+10,90));
+    const recs   = synth.data;
+    const buyIdx = Math.max(0, recs.length - daysAgo);
+    const buyRow = recs[buyIdx] || recs[0];
+    const sellRow= recs[recs.length-1];
+    const buyPrice = buyRow.close, sellPrice = sellRow.close;
+    const shares = amount/buyPrice, currVal = shares*sellPrice, profit = currVal-amount;
+    const d = {
+      symbol:activeSymbol, amount_invested:Math.round(amount*100)/100,
+      buy_price:Math.round(buyPrice*100)/100, buy_date:buyRow.date,
+      current_price:Math.round(sellPrice*100)/100,
+      current_value:Math.round(currVal*100)/100,
+      profit_loss:Math.round(profit*100)/100,
+      return_pct:Math.round(profit/amount*10000)/100,
+      shares:Math.round(shares*10000)/10000,
+      outcome: profit>=0?'profit':'loss',
+    };
+    if(d.error){ $('sim-result').style.display='block'; $('sim-result').innerHTML=`<div style="color:var(--red);font-family:var(--mono);">Error: ${d.error}</div>`; return; }
+    const isProfit = d.outcome==='profit';
+    $('sim-result').style.display = 'block';
+    $('sim-result').innerHTML = `
+      <div class="sim-result">
+        <div class="sim-headline" style="color:${isProfit?'var(--green)':'var(--red)'}">
+          ${isProfit?'▲':''} ${isProfit?'+':'-'}$${Math.abs(d.profit_loss).toFixed(2)}
+          <span style="font-size:14px;color:var(--text2)">(${fmtPct(d.return_pct)})</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:12px;">
+          ${isProfit?'Your investment grew':'Your investment declined'} over ${daysAgo} days
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-family:var(--mono);">
+          <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">INVESTED</div><div>$${fmt(d.amount_invested)}</div></div>
+          <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">CURRENT VALUE</div><div style="color:${isProfit?'var(--green)':'var(--red)'}">$${fmt(d.current_value)}</div></div>
+          <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">SHARES HELD</div><div>${d.shares}</div></div>
+          <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">BUY PRICE</div><div>$${fmt(d.buy_price)}</div></div>
+          <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">CURRENT PRICE</div><div>$${fmt(d.current_price)}</div></div>
+          <div><div style="font-size:9px;color:var(--text3);margin-bottom:3px;">BUY DATE</div><div>${d.buy_date}</div></div>
+        </div>
+      </div>`;
+  } catch(e) { console.error(e); }
 }
 
 // ── AI CHAT ────────────────────────────────────
@@ -1719,7 +1633,7 @@ function removeTyping() {
   if(el) el.remove();
 }
 
-async function sendMessage() {
+function sendMessage() {
   const input = $('chat-input');
   const msg   = input.value.trim();
   if(!msg || !activeSymbol) return;
@@ -1729,22 +1643,11 @@ async function sendMessage() {
   chatHistory.push({role:'user',content:msg});
   showTyping();
 
-  try {
-    throw new Error('use fallback');
-
-    const data = await resp.json();
-    const text = data.content?.[0]?.text || "I'm having trouble processing that. Please try again.";
-    removeTyping();
-    addAIMessage(text);
-    chatHistory.push({role:'assistant',content:text});
-
-  } catch(e) {
-    removeTyping();
-    // Fallback response
-    const fallback = generateFallback(msg, stockMetrics);
-    addAIMessage(fallback);
-    chatHistory.push({role:'assistant',content:fallback});
-  }
+  // Use smart fallback AI responses (no CORS issues)
+  removeTyping();
+  const fallback = generateFallback(msg, stockMetrics);
+  addAIMessage(fallback);
+  chatHistory.push({role:'assistant',content:fallback});
 }
 
 function generateFallback(msg, met) {
@@ -1781,84 +1684,86 @@ function clearChat() {
 // Enter key
 $('chat-input')?.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
 
-// ── FULL STATIC COMPANY DATA (60 companies, all sectors) ─────────────────────
+// ── STATIC COMPANY DATA (80 companies — US + India) ──────────────
 const STATIC_COMPANIES = [
-  // ── TECH ──
-  {symbol:'AAPL', name:'Apple Inc.',            sector:'Tech',       mcap:'$3.12T', price:189.30, change_pct: 0.66, signal:'BUY',   decision_score:72, rsi:54.2},
-  {symbol:'MSFT', name:'Microsoft Corp.',        sector:'Tech',       mcap:'$3.08T', price:415.20, change_pct: 0.92, signal:'BUY',   decision_score:74, rsi:55.1},
-  {symbol:'GOOGL',name:'Alphabet Inc.',          sector:'Tech',       mcap:'$2.19T', price:176.50, change_pct:-0.45, signal:'HOLD',  decision_score:58, rsi:48.3},
-  {symbol:'NVDA', name:'NVIDIA Corp.',           sector:'Tech',       mcap:'$2.16T', price:875.40, change_pct: 2.12, signal:'BUY',   decision_score:79, rsi:61.4},
-  {symbol:'META', name:'Meta Platforms',         sector:'Tech',       mcap:'$1.38T', price:510.20, change_pct: 1.27, signal:'BUY',   decision_score:71, rsi:57.8},
-  {symbol:'AMZN', name:'Amazon.com Inc.',        sector:'Tech',       mcap:'$2.06T', price:195.80, change_pct: 1.08, signal:'BUY',   decision_score:70, rsi:53.6},
-  {symbol:'TSLA', name:'Tesla Inc.',             sector:'Tech',       mcap:'$780B',  price:248.50, change_pct:-1.32, signal:'RISKY', decision_score:41, rsi:43.2},
-  {symbol:'ORCL', name:'Oracle Corp.',           sector:'Tech',       mcap:'$442B',  price:142.60, change_pct: 1.26, signal:'BUY',   decision_score:68, rsi:52.9},
-  {symbol:'CRM',  name:'Salesforce Inc.',        sector:'Tech',       mcap:'$298B',  price:308.70, change_pct: 1.38, signal:'HOLD',  decision_score:62, rsi:50.4},
-  {symbol:'AMD',  name:'Advanced Micro Devices', sector:'Tech',       mcap:'$263B',  price:162.40, change_pct:-0.79, signal:'BUY',   decision_score:65, rsi:49.7},
-  {symbol:'INTC', name:'Intel Corp.',            sector:'Tech',       mcap:'$133B',  price:31.40,  change_pct:-1.87, signal:'RISKY', decision_score:36, rsi:40.1},
-  {symbol:'ADBE', name:'Adobe Inc.',             sector:'Tech',       mcap:'$178B',  price:492.30, change_pct: 0.54, signal:'HOLD',  decision_score:60, rsi:51.2},
-  {symbol:'QCOM', name:'Qualcomm Inc.',          sector:'Tech',       mcap:'$168B',  price:181.20, change_pct: 0.73, signal:'BUY',   decision_score:67, rsi:53.5},
-  {symbol:'NFLX', name:'Netflix Inc.',           sector:'Tech',       mcap:'$412B',  price:698.40, change_pct: 1.85, signal:'BUY',   decision_score:76, rsi:62.1},
-  {symbol:'SNOW', name:'Snowflake Inc.',         sector:'Tech',       mcap:'$52B',   price:178.60, change_pct:-0.63, signal:'HOLD',  decision_score:55, rsi:46.8},
-  // ── FINANCE ──
-  {symbol:'JPM',  name:'JPMorgan Chase',         sector:'Finance',    mcap:'$698B',  price:205.10, change_pct: 1.13, signal:'BUY',   decision_score:69, rsi:55.3},
-  {symbol:'BAC',  name:'Bank of America',        sector:'Finance',    mcap:'$318B',  price:38.40,  change_pct: 1.05, signal:'HOLD',  decision_score:59, rsi:51.7},
-  {symbol:'GS',   name:'Goldman Sachs Group',    sector:'Finance',    mcap:'$171B',  price:510.80, change_pct: 1.03, signal:'BUY',   decision_score:71, rsi:56.4},
-  {symbol:'MS',   name:'Morgan Stanley',         sector:'Finance',    mcap:'$148B',  price:107.30, change_pct: 0.82, signal:'HOLD',  decision_score:60, rsi:52.1},
-  {symbol:'V',    name:'Visa Inc.',              sector:'Finance',    mcap:'$570B',  price:276.30, change_pct: 1.02, signal:'BUY',   decision_score:70, rsi:54.9},
-  {symbol:'MA',   name:'Mastercard Inc.',        sector:'Finance',    mcap:'$452B',  price:487.60, change_pct: 0.70, signal:'BUY',   decision_score:72, rsi:55.6},
-  {symbol:'BRK-B',name:'Berkshire Hathaway B',   sector:'Finance',    mcap:'$865B',  price:392.40, change_pct: 0.28, signal:'BUY',   decision_score:68, rsi:53.2},
-  {symbol:'AXP',  name:'American Express',       sector:'Finance',    mcap:'$198B',  price:238.70, change_pct: 0.94, signal:'BUY',   decision_score:67, rsi:54.0},
-  {symbol:'C',    name:'Citigroup Inc.',         sector:'Finance',    mcap:'$122B',  price:62.40,  change_pct: 0.65, signal:'HOLD',  decision_score:57, rsi:50.3},
-  {symbol:'WFC',  name:'Wells Fargo',            sector:'Finance',    mcap:'$228B',  price:56.80,  change_pct: 0.47, signal:'HOLD',  decision_score:58, rsi:50.8},
-  // ── HEALTH ──
-  {symbol:'JNJ',  name:'Johnson & Johnson',      sector:'Health',     mcap:'$355B',  price:148.20, change_pct:-0.20, signal:'HOLD',  decision_score:56, rsi:47.6},
-  {symbol:'UNH',  name:'UnitedHealth Group',     sector:'Health',     mcap:'$485B',  price:526.80, change_pct: 0.90, signal:'BUY',   decision_score:70, rsi:55.8},
-  {symbol:'LLY',  name:'Eli Lilly & Co.',        sector:'Health',     mcap:'$801B',  price:842.60, change_pct: 1.49, signal:'BUY',   decision_score:78, rsi:60.7},
-  {symbol:'PFE',  name:'Pfizer Inc.',            sector:'Health',     mcap:'$152B',  price:26.80,  change_pct:-0.74, signal:'HOLD',  decision_score:52, rsi:46.9},
-  {symbol:'ABBV', name:'AbbVie Inc.',            sector:'Health',     mcap:'$297B',  price:168.40, change_pct: 0.96, signal:'BUY',   decision_score:66, rsi:53.4},
-  {symbol:'MRK',  name:'Merck & Co.',            sector:'Health',     mcap:'$268B',  price:104.20, change_pct: 0.32, signal:'HOLD',  decision_score:58, rsi:49.5},
-  {symbol:'TMO',  name:'Thermo Fisher',          sector:'Health',     mcap:'$198B',  price:498.30, change_pct: 0.68, signal:'HOLD',  decision_score:61, rsi:51.9},
-  {symbol:'ISRG', name:'Intuitive Surgical',     sector:'Health',     mcap:'$178B',  price:468.90, change_pct: 1.12, signal:'BUY',   decision_score:69, rsi:55.1},
-  // ── ENERGY ──
-  {symbol:'XOM',  name:'ExxonMobil Corp.',       sector:'Energy',     mcap:'$433B',  price:108.20, change_pct: 0.74, signal:'BUY',   decision_score:68, rsi:53.6},
-  {symbol:'CVX',  name:'Chevron Corp.',          sector:'Energy',     mcap:'$276B',  price:148.60, change_pct: 0.81, signal:'HOLD',  decision_score:59, rsi:50.2},
-  {symbol:'COP',  name:'ConocoPhillips',         sector:'Energy',     mcap:'$128B',  price:108.40, change_pct: 1.04, signal:'BUY',   decision_score:66, rsi:53.1},
-  {symbol:'SLB',  name:'Schlumberger',           sector:'Energy',     mcap:'$62B',   price:43.80,  change_pct: 0.46, signal:'HOLD',  decision_score:57, rsi:49.8},
-  {symbol:'EOG',  name:'EOG Resources',          sector:'Energy',     mcap:'$78B',   price:131.40, change_pct: 0.88, signal:'BUY',   decision_score:65, rsi:52.7},
-  {symbol:'NEE',  name:'NextEra Energy',         sector:'Energy',     mcap:'$148B',  price:72.40,  change_pct: 0.84, signal:'BUY',   decision_score:66, rsi:53.0},
-  // ── CONSUMER ──
-  {symbol:'WMT',  name:'Walmart Inc.',           sector:'Consumer',   mcap:'$748B',  price:89.20,  change_pct: 0.42, signal:'BUY',   decision_score:71, rsi:55.4},
-  {symbol:'PG',   name:'Procter & Gamble',       sector:'Consumer',   mcap:'$368B',  price:148.30, change_pct: 0.21, signal:'HOLD',  decision_score:60, rsi:51.3},
-  {symbol:'KO',   name:'Coca-Cola Co.',          sector:'Consumer',   mcap:'$268B',  price:62.80,  change_pct: 0.16, signal:'HOLD',  decision_score:58, rsi:50.6},
-  {symbol:'PEP',  name:'PepsiCo Inc.',           sector:'Consumer',   mcap:'$198B',  price:144.20, change_pct:-0.38, signal:'HOLD',  decision_score:54, rsi:47.1},
-  {symbol:'COST', name:'Costco Wholesale',       sector:'Consumer',   mcap:'$398B',  price:878.60, change_pct: 0.63, signal:'BUY',   decision_score:73, rsi:57.2},
-  {symbol:'MCD',  name:"McDonald's Corp.",       sector:'Consumer',   mcap:'$212B',  price:286.40, change_pct: 0.35, signal:'HOLD',  decision_score:61, rsi:51.8},
-  {symbol:'NKE',  name:'Nike Inc.',              sector:'Consumer',   mcap:'$118B',  price:78.40,  change_pct:-0.92, signal:'RISKY', decision_score:44, rsi:43.9},
-  // ── INDUSTRIAL ──
-  {symbol:'BA',   name:'Boeing Co.',             sector:'Industrial', mcap:'$108B',  price:168.30, change_pct: 0.72, signal:'HOLD',  decision_score:55, rsi:48.7},
-  {symbol:'CAT',  name:'Caterpillar Inc.',       sector:'Industrial', mcap:'$178B',  price:348.70, change_pct: 0.94, signal:'BUY',   decision_score:68, rsi:54.2},
-  {symbol:'GE',   name:'GE Aerospace',           sector:'Industrial', mcap:'$228B',  price:204.60, change_pct: 1.08, signal:'BUY',   decision_score:71, rsi:56.3},
-  {symbol:'HON',  name:'Honeywell Intl.',        sector:'Industrial', mcap:'$128B',  price:196.40, change_pct: 0.42, signal:'HOLD',  decision_score:59, rsi:50.9},
-  {symbol:'RTX',  name:'RTX Corp.',              sector:'Industrial', mcap:'$158B',  price:122.80, change_pct: 0.66, signal:'BUY',   decision_score:65, rsi:52.4},
-  {symbol:'UPS',  name:'United Parcel Service',  sector:'Industrial', mcap:'$98B',   price:114.20, change_pct:-0.54, signal:'HOLD',  decision_score:53, rsi:47.3},
-  // ── MEDIA ──
-  {symbol:'DIS',  name:'Walt Disney Co.',        sector:'Media',      mcap:'$188B',  price:104.60, change_pct: 0.58, signal:'HOLD',  decision_score:57, rsi:49.4},
-  {symbol:'CMCSA',name:'Comcast Corp.',          sector:'Media',      mcap:'$148B',  price:34.80,  change_pct: 0.29, signal:'HOLD',  decision_score:54, rsi:48.1},
-  {symbol:'SPOT', name:'Spotify Technology',     sector:'Media',      mcap:'$78B',   price:394.20, change_pct: 1.62, signal:'BUY',   decision_score:73, rsi:58.6},
-  {symbol:'WBD',  name:'Warner Bros. Discovery', sector:'Media',      mcap:'$22B',   price:9.40,   change_pct:-1.05, signal:'RISKY', decision_score:40, rsi:42.8},
+  // ── TECH (US) ──
+  {symbol:'AAPL', name:'Apple Inc.',            sector:'Tech',     mcap:'$3.12T', price:189.30, change_pct: 0.66, signal:'BUY',   decision_score:72, rsi:54.2},
+  {symbol:'MSFT', name:'Microsoft Corp.',        sector:'Tech',     mcap:'$3.08T', price:415.20, change_pct: 0.92, signal:'BUY',   decision_score:74, rsi:55.1},
+  {symbol:'GOOGL',name:'Alphabet Inc.',          sector:'Tech',     mcap:'$2.19T', price:176.50, change_pct:-0.45, signal:'HOLD',  decision_score:58, rsi:48.3},
+  {symbol:'NVDA', name:'NVIDIA Corp.',           sector:'Tech',     mcap:'$2.16T', price:875.40, change_pct: 2.12, signal:'BUY',   decision_score:79, rsi:61.4},
+  {symbol:'META', name:'Meta Platforms',         sector:'Tech',     mcap:'$1.38T', price:510.20, change_pct: 1.27, signal:'BUY',   decision_score:71, rsi:57.8},
+  {symbol:'AMZN', name:'Amazon.com Inc.',        sector:'Tech',     mcap:'$2.06T', price:195.80, change_pct: 1.08, signal:'BUY',   decision_score:70, rsi:53.6},
+  {symbol:'TSLA', name:'Tesla Inc.',             sector:'Tech',     mcap:'$780B',  price:248.50, change_pct:-1.32, signal:'RISKY', decision_score:41, rsi:43.2},
+  {symbol:'ORCL', name:'Oracle Corp.',           sector:'Tech',     mcap:'$442B',  price:142.60, change_pct: 1.26, signal:'BUY',   decision_score:68, rsi:52.9},
+  {symbol:'CRM',  name:'Salesforce Inc.',        sector:'Tech',     mcap:'$298B',  price:308.70, change_pct: 1.38, signal:'HOLD',  decision_score:62, rsi:50.4},
+  {symbol:'AMD',  name:'Advanced Micro Devices', sector:'Tech',     mcap:'$263B',  price:162.40, change_pct:-0.79, signal:'BUY',   decision_score:65, rsi:49.7},
+  {symbol:'INTC', name:'Intel Corp.',            sector:'Tech',     mcap:'$133B',  price:31.40,  change_pct:-1.87, signal:'RISKY', decision_score:36, rsi:40.1},
+  {symbol:'ADBE', name:'Adobe Inc.',             sector:'Tech',     mcap:'$178B',  price:492.30, change_pct: 0.54, signal:'HOLD',  decision_score:60, rsi:51.2},
+  {symbol:'QCOM', name:'Qualcomm Inc.',          sector:'Tech',     mcap:'$168B',  price:181.20, change_pct: 0.73, signal:'BUY',   decision_score:67, rsi:53.5},
+  {symbol:'NFLX', name:'Netflix Inc.',           sector:'Tech',     mcap:'$412B',  price:698.40, change_pct: 1.85, signal:'BUY',   decision_score:76, rsi:62.1},
+  {symbol:'SNOW', name:'Snowflake Inc.',         sector:'Tech',     mcap:'$52B',   price:178.60, change_pct:-0.63, signal:'HOLD',  decision_score:55, rsi:46.8},
+  // ── FINANCE (US) ──
+  {symbol:'JPM',  name:'JPMorgan Chase',         sector:'Finance',  mcap:'$698B',  price:205.10, change_pct: 1.13, signal:'BUY',   decision_score:69, rsi:55.3},
+  {symbol:'BAC',  name:'Bank of America',        sector:'Finance',  mcap:'$318B',  price:38.40,  change_pct: 1.05, signal:'HOLD',  decision_score:59, rsi:51.7},
+  {symbol:'GS',   name:'Goldman Sachs',          sector:'Finance',  mcap:'$171B',  price:510.80, change_pct: 1.03, signal:'BUY',   decision_score:71, rsi:56.4},
+  {symbol:'V',    name:'Visa Inc.',              sector:'Finance',  mcap:'$570B',  price:276.30, change_pct: 1.02, signal:'BUY',   decision_score:70, rsi:54.9},
+  {symbol:'MA',   name:'Mastercard Inc.',        sector:'Finance',  mcap:'$452B',  price:487.60, change_pct: 0.70, signal:'BUY',   decision_score:72, rsi:55.6},
+  {symbol:'BRK-B',name:'Berkshire Hathaway',     sector:'Finance',  mcap:'$865B',  price:392.40, change_pct: 0.28, signal:'BUY',   decision_score:68, rsi:53.2},
+  // ── HEALTH (US) ──
+  {symbol:'JNJ',  name:'Johnson & Johnson',      sector:'Health',   mcap:'$355B',  price:148.20, change_pct:-0.20, signal:'HOLD',  decision_score:56, rsi:47.6},
+  {symbol:'UNH',  name:'UnitedHealth Group',     sector:'Health',   mcap:'$485B',  price:526.80, change_pct: 0.90, signal:'BUY',   decision_score:70, rsi:55.8},
+  {symbol:'LLY',  name:'Eli Lilly & Co.',        sector:'Health',   mcap:'$801B',  price:842.60, change_pct: 1.49, signal:'BUY',   decision_score:78, rsi:60.7},
+  {symbol:'PFE',  name:'Pfizer Inc.',            sector:'Health',   mcap:'$152B',  price:26.80,  change_pct:-0.74, signal:'HOLD',  decision_score:52, rsi:46.9},
+  {symbol:'ABBV', name:'AbbVie Inc.',            sector:'Health',   mcap:'$297B',  price:168.40, change_pct: 0.96, signal:'BUY',   decision_score:66, rsi:53.4},
+  // ── ENERGY (US) ──
+  {symbol:'XOM',  name:'ExxonMobil Corp.',       sector:'Energy',   mcap:'$433B',  price:108.20, change_pct: 0.74, signal:'BUY',   decision_score:68, rsi:53.6},
+  {symbol:'CVX',  name:'Chevron Corp.',          sector:'Energy',   mcap:'$276B',  price:148.60, change_pct: 0.81, signal:'HOLD',  decision_score:59, rsi:50.2},
+  {symbol:'NEE',  name:'NextEra Energy',         sector:'Energy',   mcap:'$148B',  price:72.40,  change_pct: 0.84, signal:'BUY',   decision_score:66, rsi:53.0},
+  // ── CONSUMER (US) ──
+  {symbol:'WMT',  name:'Walmart Inc.',           sector:'Consumer', mcap:'$748B',  price:89.20,  change_pct: 0.42, signal:'BUY',   decision_score:71, rsi:55.4},
+  {symbol:'COST', name:'Costco Wholesale',       sector:'Consumer', mcap:'$398B',  price:878.60, change_pct: 0.63, signal:'BUY',   decision_score:73, rsi:57.2},
+  {symbol:'MCD',  name:"McDonald's Corp.",       sector:'Consumer', mcap:'$212B',  price:286.40, change_pct: 0.35, signal:'HOLD',  decision_score:61, rsi:51.8},
+  {symbol:'NKE',  name:'Nike Inc.',              sector:'Consumer', mcap:'$118B',  price:78.40,  change_pct:-0.92, signal:'RISKY', decision_score:44, rsi:43.9},
+  {symbol:'KO',   name:'Coca-Cola Co.',          sector:'Consumer', mcap:'$268B',  price:62.80,  change_pct: 0.16, signal:'HOLD',  decision_score:58, rsi:50.6},
+  // ── INDUSTRIAL (US) ──
+  {symbol:'BA',   name:'Boeing Co.',             sector:'Industrial',mcap:'$108B', price:168.30, change_pct: 0.72, signal:'HOLD',  decision_score:55, rsi:48.7},
+  {symbol:'CAT',  name:'Caterpillar Inc.',       sector:'Industrial',mcap:'$178B', price:348.70, change_pct: 0.94, signal:'BUY',   decision_score:68, rsi:54.2},
+  {symbol:'GE',   name:'GE Aerospace',           sector:'Industrial',mcap:'$228B', price:204.60, change_pct: 1.08, signal:'BUY',   decision_score:71, rsi:56.3},
+  // ── MEDIA (US) ──
+  {symbol:'DIS',  name:'Walt Disney Co.',        sector:'Media',    mcap:'$188B',  price:104.60, change_pct: 0.58, signal:'HOLD',  decision_score:57, rsi:49.4},
+  {symbol:'SPOT', name:'Spotify Technology',     sector:'Media',    mcap:'$78B',   price:394.20, change_pct: 1.62, signal:'BUY',   decision_score:73, rsi:58.6},
+  {symbol:'NFLX', name:'Netflix Inc.',           sector:'Media',    mcap:'$412B',  price:698.40, change_pct: 1.85, signal:'BUY',   decision_score:76, rsi:62.1},
   // ── CRYPTO ──
-  {symbol:'COIN', name:'Coinbase Global',        sector:'Crypto',     mcap:'$62B',   price:245.30, change_pct:-2.14, signal:'RISKY', decision_score:42, rsi:44.7},
-  {symbol:'MSTR', name:'MicroStrategy',          sector:'Crypto',     mcap:'$42B',   price:384.60, change_pct:-3.22, signal:'RISKY', decision_score:38, rsi:41.3},
-  {symbol:'RIOT', name:'Riot Platforms',         sector:'Crypto',     mcap:'$4B',    price:12.80,  change_pct:-2.84, signal:'RISKY', decision_score:35, rsi:39.6},
-  {symbol:'MARA', name:'Marathon Digital',       sector:'Crypto',     mcap:'$5B',    price:18.40,  change_pct:-3.48, signal:'RISKY', decision_score:33, rsi:38.2},
+  {symbol:'COIN', name:'Coinbase Global',        sector:'Crypto',   mcap:'$62B',   price:245.30, change_pct:-2.14, signal:'RISKY', decision_score:42, rsi:44.7},
+  {symbol:'MSTR', name:'MicroStrategy',          sector:'Crypto',   mcap:'$42B',   price:384.60, change_pct:-3.22, signal:'RISKY', decision_score:38, rsi:41.3},
+  {symbol:'RIOT', name:'Riot Platforms',         sector:'Crypto',   mcap:'$4B',    price:12.80,  change_pct:-2.84, signal:'RISKY', decision_score:35, rsi:39.6},
+  {symbol:'MARA', name:'Marathon Digital',       sector:'Crypto',   mcap:'$5B',    price:18.40,  change_pct:-3.48, signal:'RISKY', decision_score:33, rsi:38.2},
+  // ── INDIA (NSE) — prices in ₹ ──
+  {symbol:'TCS.NS',       name:'Tata Consultancy Services', sector:'India', mcap:'₹14.2L Cr', price:3842,  change_pct: 0.54, signal:'BUY',   decision_score:71, rsi:54.8, currency:'₹'},
+  {symbol:'RELIANCE.NS',  name:'Reliance Industries',       sector:'India', mcap:'₹18.9L Cr', price:2456,  change_pct: 0.32, signal:'HOLD',  decision_score:63, rsi:50.1, currency:'₹'},
+  {symbol:'INFY.NS',      name:'Infosys Ltd',               sector:'India', mcap:'₹6.1L Cr',  price:1423,  change_pct:-0.21, signal:'HOLD',  decision_score:58, rsi:47.3, currency:'₹'},
+  {symbol:'HDFCBANK.NS',  name:'HDFC Bank Ltd',             sector:'India', mcap:'₹11.2L Cr', price:1678,  change_pct: 0.87, signal:'BUY',   decision_score:69, rsi:54.2, currency:'₹'},
+  {symbol:'ICICIBANK.NS', name:'ICICI Bank Ltd',            sector:'India', mcap:'₹8.4L Cr',  price:1198,  change_pct: 1.12, signal:'BUY',   decision_score:72, rsi:56.3, currency:'₹'},
+  {symbol:'WIPRO.NS',     name:'Wipro Ltd',                 sector:'India', mcap:'₹2.8L Cr',  price:478,   change_pct:-0.43, signal:'HOLD',  decision_score:55, rsi:46.9, currency:'₹'},
+  {symbol:'SBIN.NS',      name:'State Bank of India',       sector:'India', mcap:'₹7.1L Cr',  price:798,   change_pct: 0.68, signal:'BUY',   decision_score:67, rsi:53.1, currency:'₹'},
+  {symbol:'BHARTIARTL.NS',name:'Bharti Airtel Ltd',         sector:'India', mcap:'₹9.2L Cr',  price:1542,  change_pct: 1.34, signal:'BUY',   decision_score:74, rsi:58.4, currency:'₹'},
+  {symbol:'LT.NS',        name:'Larsen & Toubro Ltd',       sector:'India', mcap:'₹4.8L Cr',  price:3412,  change_pct: 0.76, signal:'BUY',   decision_score:68, rsi:53.8, currency:'₹'},
+  {symbol:'HINDUNILVR.NS',name:'Hindustan Unilever Ltd',    sector:'India', mcap:'₹5.4L Cr',  price:2298,  change_pct:-0.18, signal:'HOLD',  decision_score:60, rsi:49.7, currency:'₹'},
+  {symbol:'AXISBANK.NS',  name:'Axis Bank Ltd',             sector:'India', mcap:'₹3.6L Cr',  price:1167,  change_pct: 0.94, signal:'BUY',   decision_score:66, rsi:52.6, currency:'₹'},
+  {symbol:'KOTAKBANK.NS', name:'Kotak Mahindra Bank',       sector:'India', mcap:'₹3.8L Cr',  price:1912,  change_pct: 0.42, signal:'HOLD',  decision_score:61, rsi:51.2, currency:'₹'},
+  {symbol:'BAJFINANCE.NS',name:'Bajaj Finance Ltd',         sector:'India', mcap:'₹4.2L Cr',  price:6842,  change_pct: 1.28, signal:'BUY',   decision_score:73, rsi:57.9, currency:'₹'},
+  {symbol:'ADANIENT.NS',  name:'Adani Enterprises Ltd',     sector:'India', mcap:'₹3.1L Cr',  price:2734,  change_pct:-1.42, signal:'RISKY', decision_score:39, rsi:41.8, currency:'₹'},
+  {symbol:'TATAMOTORS.NS',name:'Tata Motors Ltd',           sector:'India', mcap:'₹2.9L Cr',  price:842,   change_pct: 0.93, signal:'BUY',   decision_score:65, rsi:52.1, currency:'₹'},
+  {symbol:'SUNPHARMA.NS', name:'Sun Pharmaceutical',        sector:'India', mcap:'₹3.4L Cr',  price:1423,  change_pct: 0.61, signal:'BUY',   decision_score:67, rsi:53.4, currency:'₹'},
+  {symbol:'ONGC.NS',      name:'Oil & Natural Gas Corp',    sector:'India', mcap:'₹2.7L Cr',  price:214,   change_pct: 0.47, signal:'HOLD',  decision_score:57, rsi:49.3, currency:'₹'},
+  {symbol:'NTPC.NS',      name:'NTPC Ltd',                  sector:'India', mcap:'₹3.2L Cr',  price:384,   change_pct: 0.52, signal:'BUY',   decision_score:64, rsi:52.0, currency:'₹'},
+  {symbol:'MARUTI.NS',    name:'Maruti Suzuki India Ltd',   sector:'India', mcap:'₹3.8L Cr',  price:11420, change_pct: 0.84, signal:'BUY',   decision_score:70, rsi:55.2, currency:'₹'},
+  {symbol:'NESTLEIND.NS', name:'Nestle India Ltd',          sector:'India', mcap:'₹2.2L Cr',  price:2284,  change_pct: 0.31, signal:'HOLD',  decision_score:62, rsi:51.4, currency:'₹'},
 ];
 
 // ── INIT ───────────────────────────────────────
-(async function() {
-  loadTicker();
-  await loadCompanies();
-  buildSidebar(allCompanies);
-})();
+loadTicker();
+loadCompanies();
 </script>
 
 <div style="text-align:center; padding:20px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#3a4e68; letter-spacing:2px; border-top:1px solid #1e2d44; position:relative; z-index:1;">
