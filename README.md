@@ -13,7 +13,7 @@
 *Where Machine Learning Meets Financial Intuition*
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-VaultIQ-6366f1?style=for-the-badge)](https://janhavi-cmd.github.io/VaultIQ/)
-[![Backend API](https://img.shields.io/badge/🚀_Backend_API-HuggingFace-ff6b35?style=for-the-badge)](https://janhavichaturvedi0805-vaultiq-backend.hf.space)
+[![Backend API](https://img.shields.io/badge/🚀_Backend_API-HuggingFace-ff6b35?style=for-the-badge)](https://huggingface.co/spaces/janhavichaturvedi0805/vaultiq-backend/tree/main)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![scikit--learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
