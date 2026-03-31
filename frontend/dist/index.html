@@ -814,7 +814,7 @@ body::after {
 
 <!-- ═══════════ JAVASCRIPT ═══════════ -->
 <script>
-const API = '';
+const API = null;
 let allCompanies = [];
 let activeSector = 'all';
 let activeSymbol = null;
@@ -1086,12 +1086,7 @@ function showPage(name) {
 // ── TICKER TAPE ────────────────────────────────
 async function loadTicker() {
   try {
-    let data;
-    try {
-      throw new Error('no api');
-    } catch(e) {
-      data = STATIC_COMPANIES;
-    }
+    let data = STATIC_COMPANIES;
     const sample = data.slice(0,18);
     const items  = sample.map(s =>
       `<span class="tick"><span class="tick-sym">${s.symbol}</span><span class="tick-sep">|</span><span class="tick-price">$${fmt(s.price)}</span><span class="${s.change_pct>=0?'tick-up':'tick-dn'}">${fmtPct(s.change_pct)}</span></span>`
@@ -1109,23 +1104,7 @@ async function loadCompanies() {
   renderCompanyCards(allCompanies);
 
   // Then try to enrich with live data from API (non-blocking)
-  try {
-    throw new Error('no api');
-    summary.forEach(s => {
-      const c = allCompanies.find(x=>x.symbol===s.symbol);
-      if(c && s.price != null) {
-        c.price = s.price;
-        c.change_pct = s.change_pct;
-        c.signal = s.signal;
-        c.decision_score = s.decision_score;
-        c.rsi = s.rsi;
-      }
-    });
-    renderCompanyCards(allCompanies);
-  } catch(e) {
-    // Static data already rendered - API not available
-    console.log('Using static company data');
-  }
+  // static only
 }
 
 function renderSkeleton() {
