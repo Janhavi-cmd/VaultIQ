@@ -1088,10 +1088,7 @@ async function loadTicker() {
   try {
     let data;
     try {
-      data = await Promise.race([
-        fetch(API+'/market/summary').then(r=>r.json()),
-        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
-      ]);
+      throw new Error('no api');
     } catch(e) {
       data = STATIC_COMPANIES;
     }
@@ -1113,10 +1110,7 @@ async function loadCompanies() {
 
   // Then try to enrich with live data from API (non-blocking)
   try {
-    const summary = await Promise.race([
-      fetch(API+'/market/summary').then(r=>r.json()),
-      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 8000))
-    ]);
+    throw new Error('no api');
     summary.forEach(s => {
       const c = allCompanies.find(x=>x.symbol===s.symbol);
       if(c && s.price != null) {
