@@ -1104,7 +1104,7 @@ async function loadCompanies() {
   renderCompanyCards(allCompanies);
 
   // Then try to enrich with live data from API (non-blocking)
-  // static only
+ // static only
 }
 
 function renderSkeleton() {
@@ -1730,21 +1730,7 @@ async function sendMessage() {
   showTyping();
 
   try {
-    const messages = [
-      {role:'user', content: stockContext},
-      ...chatHistory.slice(-8)
-    ];
-
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        system: stockContext,
-        messages: chatHistory.slice(-8)
-      })
-    });
+    throw new Error('use fallback');
 
     const data = await resp.json();
     const text = data.content?.[0]?.text || "I'm having trouble processing that. Please try again.";
